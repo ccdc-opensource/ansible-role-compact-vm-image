@@ -1,0 +1,43 @@
+---
+- name: Get info for services that can interfere with temporary file removal
+  when: ansible_os_family == "Windows"
+  ansible.windows.win_service:
+    name: "{{ service }}"
+  loop:
+    - TrustedInstaller   # Windows Modules Installer
+    - wuauserv           # Windows Update
+    - BITS               # Background Intelligent Transfer Service
+  loop_control:
+    loop_var: service
+  register: services_to_stop
+
+- name: Stop Windows services that can interfere with temporary file removal
+  when: ansible_os_family == "Windows" and service.state == "running"
+  ansible.windows.win_service:
+    name: "{{ service.name }}"
+    state: stopped
+    start_mode: disabled
+  loop: "{{ services_to_stop.results }}"
+  loop_control:
+    loop_var: service
+
+- name: Reboot
+  ansible.windows.win_reboot:
+
+- name: Remove files
+  ansible.builtin.include_tasks: remove_files.yml
+  vars:
+    path: "{{ temp_path }}"
+  loop: "{{ temporary_files }}"
+  loop_control:
+    loop_var: temp_path
+
+- name: Restart services that were stopped
+  when: ansible_os_family == "Windows" and service.changed
+  ansible.windows.win_service:
+    name: "{{ service.name }}"
+    state: running
+    start_mode: "{{ service.start_mode }}"
+  loop: "{{ services_to_stop.results }}"
+  loop_control:
+    loop_var: service

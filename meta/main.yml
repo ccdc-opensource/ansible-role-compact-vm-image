@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  role_name: compact_vm_image
+  namespace: ccdc
+  author: florianpiesche
+  description: A role to compact a target machine's disk for export as a virtual machine image.
+  company: The Cambridge Crystallographic Data Centre
+  issue_tracker_url: https://ccdc-cambridge.atlassian.net
+  license: "license (BSD, MIT)"
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: Windows
+      versions:
+        - all
+  galaxy_tags:
+    - ccdc
+
+dependencies: []

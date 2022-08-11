@@ -1,0 +1,30 @@
+---
+- name: Install required utilities
+  chocolatey.chocolatey.win_chocolatey:
+    name:
+      - sdelete
+      - ultradefrag
+    state: present
+
+- name: Get drive letters for fixed drives
+  ansible.windows.win_shell: Get-Volume | Where-Object {$_.DriveType -eq "Fixed" -and $_.DriveLetter} | Foreach-Object {Write-Host $_.DriveLetter}
+  register: drive_letters
+
+- name: Defragment drives
+  ansible.windows.win_shell: udefrag --optimize --repeat {{ drive | trim }}
+  loop: "{{ drive_letters.stdout_lines }}"
+  loop_control:
+    loop_var: drive
+
+- name: Zero free space on all drives
+  ansible.windows.win_shell: sdelete64 -accepteula -q -z {{ drive | trim }}
+  loop: "{{ drive_letters.stdout_lines }}"
+  loop_control:
+    loop_var: drive
+
+- name: Remove required utilities
+  chocolatey.chocolatey.win_chocolatey:
+    name:
+      - sdelete
+      - ultradefrag
+    state: absent

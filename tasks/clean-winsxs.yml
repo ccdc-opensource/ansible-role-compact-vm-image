@@ -1,0 +1,17 @@
+---
+- name: Clean up WinSxS folder
+  ansible.windows.win_shell: dism.exe /Online /Quiet /Cleanup-Image /StartComponentCleanup /ResetBase
+
+- name: Get list of disabled optional Windows features
+  when: remove_packages
+  ansible.windows.win_shell: |
+    Get-WindowsOptionalFeature -Online | Where-Object {$_.State -eq 'Disabled'} | ForEach-Object {Write-Host $_.FeatureName}
+  register: disabled_features
+
+- name: Remove packages for disabled optional Windows features
+  when: remove_packages
+  ansible.windows.win_shell: |
+    dism.exe /Online /Quiet /Disable-Feature "/FeatureName:{{ feature | trim }}" /Remove
+  loop: "{{ disabled_features.stdout_lines | sort }}"
+  loop_control:
+    loop_var: feature

@@ -1,0 +1,12 @@
+---
+- name: Reboot to ensure no pending tasks
+  ansible.windows.win_reboot:
+
+- name: Clean WinSxS directory
+  ansible.builtin.include_tasks: clean-winsxs.yml
+
+- name: Clean temporary files
+  ansible.builtin.include_tasks: clean-temporary-files.yml
+
+- name: Clear drive space
+  ansible.builtin.include_tasks: clear-space.yml
