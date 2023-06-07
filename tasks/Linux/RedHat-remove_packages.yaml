@@ -5,6 +5,7 @@
 
 - name: Remove development packages
   ansible.builtin.shell: dnf -y remove gcc cpp
+  become: true
 
 - name: Remove unnecessary firmware packages
   ansible.builtin.shell: dnf remove -y {{ package }}
