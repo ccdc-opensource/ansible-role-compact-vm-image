@@ -12,13 +12,13 @@
       skip: true
   tags: vars
 
-- name: Compact virtual machine drive
+- name: Compact VM disk image
   ansible.builtin.include_tasks: "{{ item }}"
   with_first_found:
     - files:
-        - "{{ ansible_os_family }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
-        - "{{ ansible_os_family }}-{{ ansible_distribution }}.yml"
+        - "{{ ansible_virtualization_type }}_{{ ansible_os_family }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+        - "{{ ansible_virtualization_type }}_{{ ansible_os_family }}-{{ ansible_distribution }}.yml"
         # This is to allow to distinguish between Windows-Server/Windows-Client
         - "{{ ansible_os_family }}-{{ ansible_facts.os_installation_type }}"
-        - "{{ ansible_os_family }}.yml"
-        - "{{ ansible_system }}.yml"
+        - "{{ ansible_virtualization_type }}_{{ ansible_os_family }}.yml"
+        - "{{ ansible_virtualization_type }}_{{ ansible_system }}.yml"

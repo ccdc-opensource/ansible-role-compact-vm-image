@@ -1,15 +1,9 @@
 ---
+- name: Remove unnecessary packages
+  ansible.builtin.include_tasks: Linux/RedHat-remove_packages.yaml
 
-- name: Autoremove unneeded packages
-  ansible.builtin.shell: dnf autoremove -y
-  become: true
-
-- name: Remove older package versions retained for rollbacks
-  ansible.builtin.shell: dnf remove -y $(dnf repoquery --installonly --latest-limit=-1 -q)
-  become: true
-
-- name: Remove development packages
-  ansible.builtin.shell: dnf -y remove gcc cpp
+- name: Remove or wipe unnecessary files
+  ansible.builtin.include_tasks: Linux/RedHat-wipe_files.yaml
 
 - name: Zero out empty space
   ansible.builtin.include_tasks: Linux/zerofree.yaml
@@ -27,58 +21,3 @@
     /sbin/swapoff "$swappart";
     dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
     /sbin/mkswap -U "$swapuuid" "$swappart";
-
-- name: Remove unnecessary firmware packages
-  ansible.builtin.shell: dnf remove -y {{ package }}
-  become: true
-  loop:
-    - aic94xx-firmware
-    - atmel-firmware
-    - bfa-firmware
-    - ipw2100-firmware
-    - ipw2200-firmware
-    - ivtv-firmware
-    - iwl1000-firmware
-    - iwl3945-firmware
-    - iwl4965-firmware
-    - iwl5000-firmware
-    - iwl5150-firmware
-    - iwl6000-firmware
-    - iwl6050-firmware
-    - kernel-uek-firmware
-    - libertas-usb8388-firmware
-    - netxen-firmware
-    - ql2xxx-firmware
-    - rt61pci-firmware
-    - rt73usb-firmware
-    - zd1211-firmware
-    - linux-firmware
-    - microcode_ctl
-  loop_control:
-    loop_var: package
-
-- name: Remove other unnecessary files
-  become: true
-  ansible.builtin.shell: rm -rf {{ path }}
-  loop:
-    - /root/anaconda-ks.cfg
-    - /tmp/*
-    - /var/tmp/*
-    - /root/.wget-hsts
-  loop_control:
-    loop_var: path
-
-- name: Empty out other files
-  become: true
-  ansible.builtin.shell: truncate -s 0 {{ file }}
-  loop:
-    - /etc/machine-id
-  loop_control:
-    loop_var: file
-
-- name: Clear shell history
-  become: true
-  ansible.builtin.shell: |
-    export HISTSIZE=0
-    truncate -s 0 /root/.*history
-    truncate -s 0 /home/{{ ansible_user }}/.*history

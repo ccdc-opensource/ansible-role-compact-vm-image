@@ -1,0 +1,40 @@
+---
+- name: Remove older package versions retained for rollbacks
+  ansible.builtin.shell: dnf remove -y $(dnf repoquery --installonly --latest-limit=-1 -q)
+  become: true
+
+- name: Remove development packages
+  ansible.builtin.shell: dnf -y remove gcc cpp
+
+- name: Remove unnecessary firmware packages
+  ansible.builtin.shell: dnf remove -y {{ package }}
+  become: true
+  loop:
+    - aic94xx-firmware
+    - atmel-firmware
+    - bfa-firmware
+    - ipw2100-firmware
+    - ipw2200-firmware
+    - ivtv-firmware
+    - iwl1000-firmware
+    - iwl3945-firmware
+    - iwl4965-firmware
+    - iwl5000-firmware
+    - iwl5150-firmware
+    - iwl6000-firmware
+    - iwl6050-firmware
+    - kernel-uek-firmware
+    - libertas-usb8388-firmware
+    - netxen-firmware
+    - ql2xxx-firmware
+    - rt61pci-firmware
+    - rt73usb-firmware
+    - zd1211-firmware
+    - linux-firmware
+    - microcode_ctl
+  loop_control:
+    loop_var: package
+
+- name: Autoremove unneeded packages
+  ansible.builtin.shell: dnf autoremove -y
+  become: true
