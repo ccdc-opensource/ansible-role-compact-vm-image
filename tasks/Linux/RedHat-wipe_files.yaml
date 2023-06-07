@@ -2,7 +2,7 @@
 - name: Find all files in `/var/log`
   ansible.builtin.find:
     path: /var/log
-    type: file
+    file_type: file
   register: log_files
 
 - name: Zero out all log files
