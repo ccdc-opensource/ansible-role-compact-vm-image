@@ -8,7 +8,7 @@
 - name: Zero out all log files
   ansible.builtin.shell: truncate --size=0 {{ logfile.path }}
   become: true
-  loop: "{{ log_files }}"
+  loop: "{{ log_files.files }}"
   loop_control:
     loop_var: logfile
 
