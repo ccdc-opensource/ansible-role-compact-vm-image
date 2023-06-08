@@ -17,8 +17,15 @@
 
 - name: Zero out swap space
   ansible.builtin.shell: |
-    swappart="$(readlink -f /dev/disk/by-uuid/$swapuuid)";
-    /sbin/swapoff "$swappart";
-    dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
-    /sbin/mkswap -U "$swapuuid" "$swappart";
+    swapuuid="`/sbin/blkid -o value -l -s UUID -t TYPE=swap`";
+    case "$?" in
+        2|0) ;;
+        *) exit 1 ;;
+    esac
+    if [[ ! -z $swapuuid ]]; then
+      swappart="$(readlink -f /dev/disk/by-uuid/$swapuuid)";
+      /sbin/swapoff "$swappart";
+      dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
+      /sbin/mkswap -U "$swapuuid" "$swappart";
+    fi
   become: true
