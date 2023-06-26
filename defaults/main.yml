@@ -8,3 +8,4 @@ temporary_files:
   - "{{ ansible_env.SystemRoot }}\\SoftwareDistribution\\Download"
 
 remove_packages: true
+wipe_swap: true

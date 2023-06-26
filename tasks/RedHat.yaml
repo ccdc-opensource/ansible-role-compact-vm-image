@@ -16,6 +16,7 @@
     loop_var: path
 
 - name: Zero out swap space
+  when: wipe_swap
   ansible.builtin.shell: |
     swapuuid="$(/sbin/blkid -o value -l -s UUID -t TYPE=swap)";
     case "$?" in
