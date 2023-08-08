@@ -1,0 +1,39 @@
+---
+- name: Find all files in `/var/log`
+  ansible.builtin.find:
+    path: /var/log
+    file_type: file
+  register: log_files
+
+- name: Zero out all log files
+  ansible.builtin.shell: truncate --size=0 {{ logfile.path }}
+  become: true
+  loop: "{{ log_files.files }}"
+  loop_control:
+    loop_var: logfile
+
+- name: Remove other unnecessary files
+  become: true
+  ansible.builtin.shell: rm -rf {{ path }}
+  loop:
+    - /root/anaconda-ks.cfg
+    - /tmp/*
+    - /var/tmp/*
+    - /root/.wget-hsts
+  loop_control:
+    loop_var: path
+
+- name: Empty out other files
+  become: true
+  ansible.builtin.shell: truncate -s 0 {{ file }}
+  loop:
+    - /etc/machine-id
+  loop_control:
+    loop_var: file
+
+- name: Clear shell history
+  become: true
+  ansible.builtin.shell: |
+    export HISTSIZE=0
+    truncate -s 0 /root/.*history
+    truncate -s 0 /home/{{ ansible_user }}/.*history

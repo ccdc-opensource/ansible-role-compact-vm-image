@@ -1,0 +1,32 @@
+---
+- name: Remove unnecessary packages
+  ansible.builtin.include_tasks: Linux/RedHat-remove_packages.yaml
+
+- name: Remove or wipe unnecessary files
+  ansible.builtin.include_tasks: Linux/RedHat-wipe_files.yaml
+
+- name: Zero out empty space
+  ansible.builtin.include_tasks: Linux/zerofree.yaml
+  vars:
+    zerofree_path: "{{ path }}"
+  loop:
+    - "/"
+    - "/boot"
+  loop_control:
+    loop_var: path
+
+- name: Zero out swap space
+  when: wipe_swap
+  ansible.builtin.shell: |
+    swapuuid="$(/sbin/blkid -o value -l -s UUID -t TYPE=swap)";
+    case "$?" in
+        2|0) ;;
+        *) exit 1 ;;
+    esac
+    if [[ ! -z $swapuuid ]]; then
+      swappart="$(readlink -f /dev/disk/by-uuid/$swapuuid)";
+      /sbin/swapoff "$swappart";
+      dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
+      /sbin/mkswap -U "$swapuuid" "$swappart";
+    fi
+  become: true

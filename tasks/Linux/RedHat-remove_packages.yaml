@@ -1,0 +1,44 @@
+---
+- name: Get list of older packages retained for rollbacks  # yamllint disable rule:no-changed-when
+  ansible.builtin.command: dnf repoquery --installonly --latest-limit=-1 -q
+  register: old_packages
+
+- name: Remove retained package versions
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ old_packages.stdout_lines }}"
+
+- name: Remove unnecessary development and firmware packages  # yamllint disable rule:no-changed-when
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - gcc
+      - cpp
+      - aic94xx-firmware
+      - atmel-firmware
+      - bfa-firmware
+      - ipw2100-firmware
+      - ipw2200-firmware
+      - ivtv-firmware
+      - iwl1000-firmware
+      - iwl3945-firmware
+      - iwl4965-firmware
+      - iwl5000-firmware
+      - iwl5150-firmware
+      - iwl6000-firmware
+      - iwl6050-firmware
+      - kernel-uek-firmware
+      - libertas-usb8388-firmware
+      - netxen-firmware
+      - ql2xxx-firmware
+      - rt61pci-firmware
+      - rt73usb-firmware
+      - zd1211-firmware
+      - linux-firmware
+      - microcode_ctl
+    state: absent
+
+- name: Autoremove unneeded packages installed as dependencies
+  become: true
+  ansible.builtin.dnf:
+    autoremove: true

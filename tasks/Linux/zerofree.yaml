@@ -1,0 +1,7 @@
+---
+- name: Zero out free space in {{ zerofree_path }}
+  ignore_errors: true  # This is necessary here because dd will error out when it runs out of disk space
+  ansible.builtin.shell: |
+    dd if=/dev/null of={{ zerofree_path }}/nullfile
+    rm {{ zerofree_path }}/nullfile
+  become: true
