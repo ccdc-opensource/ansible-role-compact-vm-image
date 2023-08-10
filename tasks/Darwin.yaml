@@ -1,0 +1,3 @@
+---
+- name: Zero free space
+  ansible.builtin.command: diskutil secureErase freespace 0 /Volumes/Macintosh\ HD
