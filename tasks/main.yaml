@@ -1,7 +1,7 @@
 ---
 - name: Set OS-specific variables for {{ ansible_os_family }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}
   ansible.builtin.include_vars:
-    file: "{{ file }}"
+    file: "vars/{{ file }}"
   vars:
     files:
       - "{{ ansible_os_family }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yaml"
