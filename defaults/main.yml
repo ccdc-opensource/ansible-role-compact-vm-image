@@ -9,3 +9,4 @@ temporary_files:
 
 remove_packages: true
 wipe_swap: true
+zerofree: true

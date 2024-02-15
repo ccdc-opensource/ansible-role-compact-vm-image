@@ -5,8 +5,8 @@
     file_type: file
   register: log_files
 
-- name: Zero out all log files
-  ansible.builtin.shell: truncate --size=0 {{ logfile.path }}
+- name: Zero out all log files  # noqa: no-changed-when
+  ansible.builtin.command: truncate --size=0 {{ logfile.path }}
   become: true
   loop: "{{ log_files.files }}"
   loop_control:
@@ -14,7 +14,9 @@
 
 - name: Remove other unnecessary files
   become: true
-  ansible.builtin.shell: rm -rf {{ path }}
+  ansible.builtin.file:
+    path: "{{ path }}"
+    state: absent
   loop:
     - /root/anaconda-ks.cfg
     - /tmp/*
@@ -23,15 +25,15 @@
   loop_control:
     loop_var: path
 
-- name: Empty out other files
+- name: Empty out other files  # noqa: no-changed-when
   become: true
-  ansible.builtin.shell: truncate -s 0 {{ file }}
+  ansible.builtin.command: truncate -s 0 {{ file }}
   loop:
     - /etc/machine-id
   loop_control:
     loop_var: file
 
-- name: Clear shell history
+- name: Clear shell history  # noqa:no-changed-when
   become: true
   ansible.builtin.shell: |
     export HISTSIZE=0

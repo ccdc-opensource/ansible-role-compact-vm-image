@@ -1,5 +1,5 @@
 ---
-- name: Get list of older packages retained for rollbacks  # yamllint disable rule:no-changed-when
+- name: Get list of older packages retained for rollbacks  # noqa:no-changed-when
   ansible.builtin.command: dnf repoquery --installonly --latest-limit=-1 -q
   register: old_packages
 

@@ -15,7 +15,7 @@
   loop_control:
     loop_var: path
 
-- name: Zero out swap space
+- name: Zero out swap space  # noqa:no-changed-when risky-shell-pipe
   when: wipe_swap
   ansible.builtin.shell: |
     swapuuid="$(/sbin/blkid -o value -l -s UUID -t TYPE=swap)";

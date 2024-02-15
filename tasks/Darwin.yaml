@@ -1,0 +1,11 @@
+---
+- name: Zero free space (macOS <11.0)  # noqa: no-changed-when
+  ansible.builtin.command: diskutil secureErase freespace 0 /Volumes/Macintosh\ HD
+  when: zerofree and (ansible_distribution_major_version | int) < 11
+
+- name: Zero free space (macOS 11.0+)  # noqa: no-changed-when ignore-errors
+  ignore_errors: true  # This is necessary here because dd will error out when it runs out of disk space
+  ansible.builtin.shell: |
+    sudo dd if=/dev/zero of=/Library/emptyfile bs=100m
+    sudo rm /Library/emptyfile
+  when: zerofree and (ansible_distribution_major_version | int) > 11
