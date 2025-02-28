@@ -9,7 +9,7 @@
     clean: yes
 
 - name: Clear up unnecessary data # noqa: no-changed-when
-  asible.builtin.shell: |
+  ansible.builtin.shell: |
     find /var/log -type f -exec truncate --size=0 {} \;
     rm -rf /tmp/* /var/tmp/*
     rm -f /root/.wget-hsts
