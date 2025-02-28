@@ -3,16 +3,19 @@
   ansible.builtin.apt:
     autoremove: yes
     purge: true
+  become: true
 
 - name: Run apt-clean
   ansible.builtin.apt:
     clean: yes
+  become: true
 
 - name: Clear up unnecessary data # noqa: no-changed-when
   ansible.builtin.shell: |
     find /var/log -type f -exec truncate --size=0 {} \;
     rm -rf /tmp/* /var/tmp/*
     rm -f /root/.wget-hsts
+  become: true
 
 - name: Cleaning the machine-id.
   block:
@@ -29,6 +32,7 @@
         src: /etc/machine-id
         dest: /var/lib/dbus/machine-id
         state: link
+  become: true
 
 - name: Cleaning the shell history.
   ansible.builtin.file:
