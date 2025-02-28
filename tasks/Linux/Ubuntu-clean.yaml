@@ -1,0 +1,23 @@
+---
+- name: Remove dependencies that are no longer required and purge their configuration files
+  ansible.builtin.apt:
+    autoremove: yes
+    purge: true
+
+- name: Run apt-clean
+  ansible.builtin.apt:
+    clean: yes
+
+- name: Empty out other files # noqa: no-changed-when
+  become: true
+  ansible.builtin.command: truncate -s 0 {{ file }}
+  loop:
+    - /etc/machine-id
+  loop_control:
+    loop_var: file
+
+- name: Clear up unnecessary data # noqa: no-changed-when
+  asible.builtin.shell: |
+    find /var/log -type f -exec truncate --size=0 {} \;
+    rm -rf /tmp/* /var/tmp/*
+    rm -f /root/.wget-hsts
