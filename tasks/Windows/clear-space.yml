@@ -21,6 +21,7 @@
   loop: "{{ drive_letters.stdout_lines }}"
   loop_control:
     loop_var: drive
+  ignore_errors: true
 
 - name: Remove required utilities
   chocolatey.chocolatey.win_chocolatey:

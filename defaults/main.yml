@@ -2,7 +2,7 @@
 temporary_files:
   - "{{ ansible_env.LOCALAPPDATA }}\\Temp\\*"
   - "{{ ansible_env.SystemRoot }}\\Temp\\*"
-  - "{{ ansible_env.SystemRoot }}\\Logs\\*"
+  # - "{{ ansible_env.SystemRoot }}\\Logs\\*"
   - "{{ ansible_env.SystemRoot }}\\Panther\\*"
   - "{{ ansible_env.SystemRoot }}\\WinSxS\\ManifestCache\\*"
   - "{{ ansible_env.SystemRoot }}\\SoftwareDistribution\\Download"

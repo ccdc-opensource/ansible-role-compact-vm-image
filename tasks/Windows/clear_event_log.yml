@@ -1,0 +1,7 @@
+---
+- name: Clear event log
+  ansible.windows.win_powershell:
+    script: |
+      $logs = Get-EventLog -List | ForEach-Object {$_.Log}
+      $logs | ForEach-Object {Clear-EventLog -LogName $_ }
+      Get-EventLog -List
