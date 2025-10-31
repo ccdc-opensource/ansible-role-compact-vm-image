@@ -8,6 +8,7 @@
       - "vars/{{ ansible_os_family }}-{{ ansible_distribution }}.yaml"
       # This is to allow to distinguish between Windows-Server/Windows-Client
       - "vars/{{ ansible_os_family }}-{{ ansible_facts.os_installation_type | default('Server') }}.yaml"
+      - "vars/{{ ansible_distribution }}.yaml"
       - "vars/{{ ansible_os_family }}.yaml"
       - "vars/{{ ansible_system }}.yaml"
   tags: vars
