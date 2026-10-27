@@ -1,13 +1,13 @@
 ---
 - name: Purge orphaned package dependencies
   ansible.builtin.apt:
-    autoremove: yes
+    autoremove: true
     purge: true
   become: true
 
 - name: Clear the apt package cache
   ansible.builtin.apt:
-    clean: yes
+    clean: true
   become: true
 
 - name: Find all log files under /var/log except installer and journal
@@ -55,19 +55,19 @@
   become: true
 # Optionally remove SSH host keys. This can cause problems if running other roles that modify SSH configuration.
 - block:
-  - name: Find SSH host key material
-    ansible.builtin.find:
-      paths: /etc/ssh
-      patterns: ssh_host_*
-    register: find_ssh_host_keys
+    - name: Find SSH host key material
+      ansible.builtin.find:
+        paths: /etc/ssh
+        patterns: ssh_host_*
+      register: find_ssh_host_keys
 
-  - name: Remove SSH host key material
-    ansible.builtin.file:
-      path: "{{ item.path }}"
-      state: absent
-    loop: "{{ find_ssh_host_keys.files }}"
-    loop_control:
-      label: "{{ item.path }}"
+    - name: Remove SSH host key material
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ find_ssh_host_keys.files }}"
+      loop_control:
+        label: "{{ item.path }}"
   become: true
   when: remove_ssh_host_keys
 
