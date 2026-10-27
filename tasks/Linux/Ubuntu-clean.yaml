@@ -1,40 +1,95 @@
 ---
-- name: Remove dependencies that are no longer required and purge their configuration files
+- name: Purge orphaned package dependencies
   ansible.builtin.apt:
     autoremove: yes
     purge: true
   become: true
 
-- name: Run apt-clean
+- name: Clear the apt package cache
   ansible.builtin.apt:
     clean: yes
   become: true
 
-- name: Clear up unnecessary data # noqa: no-changed-when
-  ansible.builtin.shell: |
-    find /var/log -type f -exec truncate --size=0 {} \;
-    rm -rf /tmp/* /var/tmp/*
-    rm -f /root/.wget-hsts
+- name: Find all log files under /var/log except installer and journal
+  ansible.builtin.find:
+    paths: /var/log
+    recurse: true
+    file_type: file
+    excludes:
+      - journal
+      - installer
+  register: ubuntu_log_files
   become: true
 
-- name: Cleaning the machine-id.
+- name: Remove log files under /var/log except installer and journal
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ ubuntu_log_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  become: true
+
+- name: Remove persistent udev network rules
+  ansible.builtin.file:
+    path: /etc/udev/rules.d/70-persistent-net.rules
+    state: absent
+  become: true
+
+- name: Locate transient files in /tmp and /var/tmp
+  ansible.builtin.find:
+    paths:
+      - /tmp
+      - /var/tmp
+    file_type: any
+  register: find_tmp_directories
+  become: true
+
+- name: Delete transient files from /tmp and /var/tmp
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ find_tmp_directories.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  become: true
+# Optionally remove SSH host keys. This can cause problems if running other roles that modify SSH configuration.
+- block:
+  - name: Find SSH host key material
+    ansible.builtin.find:
+      paths: /etc/ssh
+      patterns: ssh_host_*
+    register: find_ssh_host_keys
+
+  - name: Remove SSH host key material
+    ansible.builtin.file:
+      path: "{{ item.path }}"
+      state: absent
+    loop: "{{ find_ssh_host_keys.files }}"
+    loop_control:
+      label: "{{ item.path }}"
+  become: true
+  when: remove_ssh_host_keys
+
+- name: Reset the machine-id
   block:
-    - name: Emptying the /etc/machine-id.
+    - name: Empty /etc/machine-id
       community.general.filesize:
         path: /etc/machine-id
         size: 0
-    - name: Removing /var/lib/dbus/machine-id.
+    - name: Remove /var/lib/dbus/machine-id
       ansible.builtin.file:
         path: /var/lib/dbus/machine-id
         state: absent
-    - name: Creating a symbolic link to /etc/machine-id.
+    - name: Recreate the machine-id symlink
       ansible.builtin.file:
         src: /etc/machine-id
         dest: /var/lib/dbus/machine-id
         state: link
   become: true
 
-- name: Cleaning the shell history.
+- name: Clear the shell history
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.bash_history"
     state: absent
+  become: true
