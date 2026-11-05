@@ -10,3 +10,4 @@ temporary_files:
 remove_packages: true
 wipe_swap: true
 zerofree: true
+remove_ssh_host_keys: false
