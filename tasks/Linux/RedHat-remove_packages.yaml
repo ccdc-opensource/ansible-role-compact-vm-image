@@ -1,17 +1,35 @@
 ---
-- name: Get list of older packages retained for rollbacks  # noqa:no-changed-when
+- name: Get list of older packages retained for rollbacks
   ansible.builtin.command: dnf repoquery --installonly --latest-limit=-1 -q
   register: old_packages
+  changed_when: false
+  check_mode: false
 
 - name: Remove retained package versions
   become: true
   ansible.builtin.dnf:
     name: "{{ old_packages.stdout_lines }}"
+    state: absent
+  when:
+    - not (ansible_distribution == 'Rocky' and ansible_distribution_major_version == '8')
+    - old_packages.stdout_lines | length > 0
 
-- name: Remove unnecessary development and firmware packages  # yamllint disable rule:no-changed-when
+- name: Remove retained package versions on Rocky 8
   become: true
-  ansible.builtin.dnf:
-    name:
+  ansible.builtin.command:
+    argv: "{{ ['dnf', '-y', 'remove'] + old_packages.stdout_lines }}"
+  register: removed_old_packages
+  changed_when: "'Nothing to do.' not in removed_old_packages.stdout and 'No packages marked for removal.' not in removed_old_packages.stdout"
+  environment:
+    LC_ALL: C
+  when:
+    - ansible_distribution == 'Rocky'
+    - ansible_distribution_major_version == '8'
+    - old_packages.stdout_lines | length > 0
+
+- name: Remove unnecessary development and firmware packages
+  vars:
+    unnecessary_packages:
       - gcc
       - cpp
       - aic94xx-firmware
@@ -36,9 +54,39 @@
       - zd1211-firmware
       - linux-firmware
       - microcode_ctl
-    state: absent
+  block:
+    - name: Remove unnecessary packages with DNF
+      become: true
+      ansible.builtin.dnf:
+        name: "{{ unnecessary_packages }}"
+        state: absent
+      when: not (ansible_distribution == 'Rocky' and ansible_distribution_major_version == '8')
+
+    - name: Remove unnecessary packages with DNF on Rocky 8
+      become: true
+      ansible.builtin.command:
+        argv: "{{ ['dnf', '-y', 'remove'] + unnecessary_packages }}"
+      register: removed_unnecessary_packages
+      changed_when: "'Nothing to do.' not in removed_unnecessary_packages.stdout and 'No packages marked for removal.' not in removed_unnecessary_packages.stdout"
+      environment:
+        LC_ALL: C
+      when:
+        - ansible_distribution == 'Rocky'
+        - ansible_distribution_major_version == '8'
 
 - name: Autoremove unneeded packages installed as dependencies
   become: true
   ansible.builtin.dnf:
     autoremove: true
+  when: not (ansible_distribution == 'Rocky' and ansible_distribution_major_version == '8')
+
+- name: Autoremove unneeded packages installed as dependencies on Rocky 8
+  become: true
+  ansible.builtin.command: dnf -y autoremove
+  register: autoremoved_packages
+  changed_when: "'Nothing to do.' not in autoremoved_packages.stdout and 'No packages marked for removal.' not in autoremoved_packages.stdout"
+  environment:
+    LC_ALL: C
+  when:
+    - ansible_distribution == 'Rocky'
+    - ansible_distribution_major_version == '8'
